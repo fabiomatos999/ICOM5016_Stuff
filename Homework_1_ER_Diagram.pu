@@ -1,0 +1,48 @@
+@startuml
+rectangle Agency
+storage Owner as AOwner
+storage Name as AName
+storage Categories as ACategories
+AOwner -- Agency
+AName -- Agency
+ACategories -- Agency
+rectangle Grant
+storage "Date Posted" as PDate
+storage "Close Date" as CDate
+storage "Award Ceiling" as AwardCeiling
+storage "Award Floor" as AwardFloor
+storage "Opportunity Number" as ONumber
+storage Title as GTitle
+storage Categories as GCategories
+storage Agency as GAgency
+storage Status as GStatus
+PDate -left-- Grant
+CDate --up- Grant
+AwardCeiling --down- Grant
+AwardFloor --down- Grant
+ONumber --up- Grant
+GTitle --up- Grant
+GCategories --- Grant
+GAgency --up- Grant
+GStatus -right-- Grant
+rectangle User
+storage "First Name" as UFirstName 
+storage "Last Name" as ULastName 
+storage "Password Hash" as UPassword 
+storage "Username" as UUsername 
+storage "Role" as URole 
+UFirstName -- User
+ULastName -up- User
+UPassword -- User
+UUsername -- User
+URole -up- User
+Hexagon Posts
+Agency --[#Blue]-- Posts : 1
+Posts ==[#Blue]== Grant : N
+Hexagon Receive
+Agency -[#Blue]- Receive : 1
+Receive =[#Blue]= Grant : N
+Hexagon "Is Part of" as IsPartOf
+User =right[#Blue]= IsPartOf : 1
+IsPartOf -right[#Blue]- Agency : N
+@enduml
