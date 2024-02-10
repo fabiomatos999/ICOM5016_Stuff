@@ -31,11 +31,13 @@ storage "Last Name" as ULastName
 storage "Password Hash" as UPassword 
 storage "Username" as UUsername 
 storage "Role" as URole 
+storage "Salary" as USalary
 UFirstName -- User
 ULastName -up- User
 UPassword -- User
 UUsername -- User
 URole -up- User
+USalary -right- User
 Hexagon Posts
 Agency --[#Blue]-- Posts : 1
 Posts ==[#Blue]== Grant : N
