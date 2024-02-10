@@ -1,0 +1,31 @@
+Table User {
+  id integer [primary key]
+  first_name varchar
+  last_name varchar
+  role varchar
+  username varchar [unique]
+  password_hash varchar
+  agency_id integer
+}
+
+Table Agency {
+  id integer [primary key]
+  owner varchar
+  name varchar
+  category varchar
+}
+Table Grant {
+  grant_id integer [primary key]
+  title varchar
+  status varchar
+  date_posted timestamp
+  close_date date
+  award_floor float
+  award_ceiling float
+  category varchar
+  opportunity_number varchar
+  agency_id integer
+}
+
+Ref: User.agency_id < Agency.id
+Ref: Grant.agency_id > Agency.id
