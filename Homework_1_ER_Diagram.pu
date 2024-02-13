@@ -3,9 +3,11 @@ rectangle Agency
 storage Owner as AOwner
 storage Name as AName
 storage Categories as ACategories
+storage "Budget" as ABudget
 AOwner -- Agency
 AName -- Agency
 ACategories -- Agency
+ABudget -left- Agency
 rectangle Grant
 storage "Date Posted" as PDate
 storage "Close Date" as CDate
@@ -16,6 +18,7 @@ storage Title as GTitle
 storage Categories as GCategories
 storage Agency as GAgency
 storage Status as GStatus
+Storage "Require Matching" as GRequireMatching
 PDate -left-- Grant
 CDate --up- Grant
 AwardCeiling --down- Grant
@@ -25,6 +28,7 @@ GTitle --up- Grant
 GCategories --- Grant
 GAgency --up- Grant
 GStatus -right-- Grant
+GRequireMatching -- Grant
 rectangle User
 storage "First Name" as UFirstName 
 storage "Last Name" as ULastName 
@@ -32,16 +36,22 @@ storage "Password Hash" as UPassword
 storage "Username" as UUsername 
 storage "Role" as URole 
 storage "Salary" as USalary
+storage "Date of Birth" as UDateOfBirth
 UFirstName -- User
 ULastName -up- User
 UPassword -- User
 UUsername -- User
 URole -up- User
+UDateOfBirth -up- User
 USalary -right- User
 Hexagon Posts
 Agency --[#Blue]-- Posts : 1
 Posts ==[#Blue]== Grant : N
 Hexagon Receive
+storage "Receive Date" as RReceiveDate
+storage "Authorized By" as RAuthorizedBy
+RReceiveDate -left- Receive
+RAuthorizedBy -- Receive
 Agency -[#Blue]- Receive : 1
 Receive =[#Blue]= Grant : N
 Hexagon "Is Part of" as IsPartOf
