@@ -85,6 +85,9 @@ class RoomTableData:
         :param hid Foreign Key for Hotel Table
         :param rdid Foreign Key for RoomDescription table
         :param rprice Price of the room
+
+        Should only be used by the ReserveTableRawData class and not
+        instantiated manually.
         """
         self.rid = rid
         self.hid = hid
