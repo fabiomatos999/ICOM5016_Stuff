@@ -47,7 +47,7 @@ class ReserveTableRawData:
     """Class to connect to reserve.db sqlite database and sanitize entries."""
 
     def __init__(self):
-        """Connect to database and sanitize input."""
+        """Connect to reserve.db database and sanitize input."""
         self.conn = sqlite3.connect("./Raw_Data/reserve.db")
         self.cursor = self.conn.cursor()
         raw_data = self.cursor.execute("""select reid,
@@ -68,4 +68,54 @@ class ReserveTableRawData:
 
     def getCleanData(self) -> List[ReserveTableData]:
         """Get sanitized records from records.db sqlite database."""
+        return self.cleanData
+
+
+class RoomTableData:
+    """Data class used to represent the records inside of the Room table.
+
+    This class is used to represent the records inside of the reserve table
+    of the rooms.db file given to us as a project resource.
+    """
+
+    def __init__(self, rid: int, hid: int, rdid: int, rprice: float):
+        """Construct RoomsTableData.
+
+        :param rid Auto incremented Primary Key for Rooms table.
+        :param hid Foreign Key for Hotel Table
+        :param rdid Foreign Key for RoomDescription table
+        :param rprice Price of the room
+        """
+        self.rid = rid
+        self.hid = hid
+        self.rdid = rdid
+        self.rprice = rprice
+
+    def __str__(self):
+        """Return string representation of RoomTableData."""
+        return f"{self.rid}-{self.hid}-{self.rdid}-{self.rprice}"
+
+
+class RoomTableRawData:
+    """Class to connect to rooms.db sqlite database and sanitize records."""
+
+    def __init__(self):
+        """Connect to rooms.db database and sanitize input."""
+        self.conn = sqlite3.connect("./Raw_Data/rooms.db")
+        self.cursor = self.conn.cursor()
+        raw_data = self.cursor.execute("""
+        select rid, hid, rdid, rprice from Room;""").fetchall()
+        raw_data = list(
+            map(lambda x: RoomTableData(x[0], x[1], x[2], x[3]), raw_data))
+        self.cleanData = list(
+            filter(
+                lambda x: x.rid is not None and x.hid is not None and x.rdid is
+                not None and x.rprice is not None and x.rprice > 0, raw_data))
+
+    def __del__(self):
+        """Disconnect from rooms.db sqlite database."""
+        self.conn.close()
+
+    def getCleanData(self) -> List[ReserveTableData]:
+        """Get sanitized records from rooms.db sqlite database."""
         return self.cleanData
