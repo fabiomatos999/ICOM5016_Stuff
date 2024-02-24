@@ -161,11 +161,3 @@ class RoomTableRawData:
     def getCleanData(self) -> List[ReserveTableData]:
         """Get sanitized records from rooms.db sqlite database."""
         return self.cleanData
-
-
-if __name__ == "__main__":
-    db = DatabaseConnection()
-    reserve_data = ReserveTableRawData()
-    reserve_data.insertSanitizedRecords(db)
-    room_data = RoomTableRawData()
-    room_data.insertSanitizedRecords(db)
