@@ -6,6 +6,7 @@ in phase 1 of the project.
 """
 import sqlite3
 from typing import List
+from database import DatabaseConnection
 
 
 class ReserveTableData:
@@ -55,20 +56,40 @@ class ReserveTableRawData:
         raw_data: List[ReserveTableData] = list(
             map(lambda x: ReserveTableData(x[0], x[1], x[2], x[3], x[4], x[5]),
                 raw_data))
-        self.cleanData: List[ReserveTableData] = list(
+        self.cleanData = self.sanitizeData(raw_data)
+
+    def __del__(self):
+        """Disconnect from reserve.db sqlite database."""
+        self.conn.close()
+
+    def sanitizeData(
+            self, raw_data: List[ReserveTableData]) -> List[ReserveTableData]:
+        """Remove invalid (dirty) data for insertion into the database."""
+        return list(
             filter(
                 lambda x: x.reid is not None and x.ruid is not None and x.clid
                 is not None and x.total_cost is not None and x.payment is
                 not None and x.payment != "" and x.guests is not None and x.
                 guests >= 1, raw_data))
 
-    def __del__(self):
-        """Disconnect from reserve.db sqlite database."""
-        self.conn.close()
-
     def getCleanData(self) -> List[ReserveTableData]:
         """Get sanitized records from records.db sqlite database."""
         return self.cleanData
+
+    def insertSanitizedRecords(self, conn: DatabaseConnection):
+        """Insert clean data into the Reserve table.
+
+        Alters Reserve table by adding primary key constraint to reid.
+        """
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO RESERVE (reid, ruid, clid,
+                total_cost, payment, guests)
+                VALUES (%s,%s,%s,%s,%s,%s)""",
+                (record.reid, record.ruid, record.clid, record.total_cost,
+                 record.payment, record.guests))
+        conn.cursor.execute("""ALTER TABLE reserve ADD PRIMARY KEY (reid);""")
+        conn.conn.commit()
 
 
 class RoomTableData:
@@ -79,7 +100,7 @@ class RoomTableData:
     """
 
     def __init__(self, rid: int, hid: int, rdid: int, rprice: float):
-        """Construct RoomsTableData.
+        """Construct RoomTableData.
 
         :param rid Auto incremented Primary Key for Rooms table.
         :param hid Foreign Key for Hotel Table
@@ -110,15 +131,41 @@ class RoomTableRawData:
         select rid, hid, rdid, rprice from Room;""").fetchall()
         raw_data = list(
             map(lambda x: RoomTableData(x[0], x[1], x[2], x[3]), raw_data))
-        self.cleanData = list(
-            filter(
-                lambda x: x.rid is not None and x.hid is not None and x.rdid is
-                not None and x.rprice is not None and x.rprice > 0, raw_data))
+        self.cleanData = self.sanitizeData(raw_data)
 
     def __del__(self):
         """Disconnect from rooms.db sqlite database."""
         self.conn.close()
 
+    def sanitizeData(self, raw_data: List[RoomTableData]):
+        """Remove invalid (dirty) data for insertion into the database."""
+        return list(
+            filter(
+                lambda x: x.rid is not None and x.hid is not None and x.rdid is
+                not None and x.rprice is not None and x.rprice > 0, raw_data))
+
+    def insertSanitizedRecords(self, conn: DatabaseConnection):
+        """Insert clean data into the Room table.
+
+        Alters Reserve table by adding primary key constraint to rid.
+        """
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO Room
+                (rid, hid, rdid, rprice)
+                VALUES (%s,%s,%s,%s)""",
+                (record.rid, record.hid, record.rdid, record.rprice))
+        conn.cursor.execute("""ALTER TABLE Room ADD PRIMARY KEY (rid);""")
+        conn.conn.commit()
+
     def getCleanData(self) -> List[ReserveTableData]:
         """Get sanitized records from rooms.db sqlite database."""
         return self.cleanData
+
+
+if __name__ == "__main__":
+    db = DatabaseConnection()
+    reserve_data = ReserveTableRawData()
+    reserve_data.insertSanitizedRecords(db)
+    room_data = RoomTableRawData()
+    room_data.insertSanitizedRecords(db)
