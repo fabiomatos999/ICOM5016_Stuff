@@ -21,6 +21,8 @@ class DatabaseConnection:
             self.cursor = conn.cursor()
             self.createRoomTable()
             self.createReserveTable()
+            self.createLoginTable()
+            self.createChainsTable()
 
     def createRoomTable(self):
         """Create Room table if it does not already exist."""
@@ -37,6 +39,26 @@ class DatabaseConnection:
             total_cost REAL NOT NULL,
             payment TEXT,
             guests INTEGER NOT NULL);""")
+        self.conn.commit()
+
+    def createLoginTable(self):
+        """Create Login table if it does not already exist."""
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS Login (
+            lid SERIAL PRIMARY KEY,
+            eid INTEGER NOT NULL,
+            username VARCHAR NOT NULL,
+            password VARCHAR NOT NULL);""")
+        self.conn.commit()
+
+    def createChainsTable(self):
+        """Create Chains table if it does not already exist."""
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS Chains (
+            chid SERIAL PRIMARY KEY,
+            cname VARCHAR NOT NULL,
+            springmkup float NOT NULL,
+            summermkup float NOT NULL,
+            fallmkup float NOT NULL,
+            wintermkup float NOT NULL);""")
         self.conn.commit()
 
     def __del__(self):
