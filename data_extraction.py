@@ -171,7 +171,7 @@ class LoginTableData:
         self.username = username
         self.password = password
 
-    def __str__():
+    def __str__(self):
         """Return string representation of LoginTableData."""
         return f"{self.lid}-{self.eid}-{self.username}-{self.password}"
 
@@ -211,7 +211,7 @@ class ChainsTableData:
         self.fallmkup = fallmkup
         self.wintermkup = wintermkup
 
-    def __str__():
+    def __str__(self):
         """Return string representation of ChainTableData."""
         return f"{self.chid}-{self.cname}-{self.springmkup}-{self.summermkup}-{self.fallmkup}-{self.wintermkup}"
     
