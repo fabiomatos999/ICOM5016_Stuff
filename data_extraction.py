@@ -8,6 +8,7 @@ import sqlite3
 from typing import List
 from database import DatabaseConnection
 
+import pandas as pd
 
 class ReserveTableData:
     """Data class used to represent the records inside of the reserve table.
@@ -161,3 +162,85 @@ class RoomTableRawData:
     def getCleanData(self) -> List[ReserveTableData]:
         """Get sanitized records from rooms.db sqlite database."""
         return self.cleanData
+    
+class LoginTableData:
+    """Data class used to represent the records inside of the login table."""
+    def __init__(self, lid: int, eid: int, username: str, password: str):
+        self.lid = lid
+        self.eid = eid
+        self.username = username
+        self.password = password
+
+    def __str__():
+        """Return string representation of LoginTableData."""
+        return f"{self.lid}-{self.eid}-{self.username}-{self.password}"
+
+class LoginTableRawData:
+    """Class to open dataframe for Login XLSX and sanitize records."""
+    def __init__(self):
+        """Reads Excel File and sanitize input."""
+        self.login_data = list()
+        try:
+            df = pd.read_excel("Raw_Data/login.xlsx")
+            df = df.dropna()
+            df['lid'] = df['lid'].astype(int)
+            for index, row in df.iterrows():
+                self.login_data.append(LoginTableData(row['lid'], row['employeeid'], row['user'], row['pass']))
+        except Exception as e:
+            print("Unable to read XLSX", e)
+            return None
+        
+    def insertSanitizedData(self):
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO Login
+                (lid, eid, username, password)
+                VALUES (%s,%s,%s,%s)""",
+                (record.lid, record.eid, record.username, record.password))
+    
+    def getCleanData(self) -> List[LoginTableData]:
+        return self.login_data
+
+class ChainsTableData:
+    """Data class used to represent the records inside of the chains table."""
+    def __init__(self, chid: int, cname: str, springmkup: float, summermkup: float, fallmkup: float, wintermkup: float):
+        self.chid = chid
+        self.cname = cname
+        self.springmkup = springmkup
+        self.summermkup = summermkup
+        self.fallmkup = fallmkup
+        self.wintermkup = wintermkup
+
+    def __str__():
+        """Return string representation of ChainTableData."""
+        return f"{self.chid}-{self.cname}-{self.springmkup}-{self.summermkup}-{self.fallmkup}-{self.wintermkup}"
+    
+
+class ChainsTableRawData:
+    """Class to open dataframe for Chains XLSX file and sanitize records."""
+    def __init__(self):
+        """Reads Excel File and sanitize input."""
+        self.chains_data = list()
+        try:
+            df = pd.read_excel("Raw_Data/chain.xlsx")
+            df = df.dropna()
+            df = df[df['id'] >= 1]
+            df['id'] = df['id'].astype(int)
+            for index, row in df.iterrows():
+                self.chains_data.append(ChainsTableData(row['id'], row['name'], row['spring'], row['summer'],row['fall'],row['winter']))
+        except Exception as e:
+            print("An error occurred:", e)
+            return None
+        
+    def insert_sanitized_chains_data(self):
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO Chains
+                (chid, cname, springmkup, summermkup, fallmkup, wintermkup)
+                VALUES (%s, %s, %s, %s, %s, %s)""",
+                (record.chid, record.cname, record.springmkup, record.summermkup, record.fallmkup, record.wintermkup))
+    
+    def getCleanData(self) -> List[ChainsTableData]:
+        return self.chains_data
+    
+
