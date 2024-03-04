@@ -72,8 +72,8 @@ class DatabaseConnection:
         """Create Client table if it does not already exist."""
         self.cursor.execute(
             """CREATE TABLE IF NOT EXISTS Client (clid SERIAL PRIMARY KEY,
-       fname VARCHAR NOT NULL,Iname VARCHAR NOT NULL,
-       age INTEGER NOT NULL,memeberyear INTEGER NOT NULL);""")
+       fname VARCHAR NOT NULL,lname VARCHAR NOT NULL,
+       age INTEGER NOT NULL,memberyear INTEGER NOT NULL);""")
         self.conn.commit()
 
     def createHotelTable(self):

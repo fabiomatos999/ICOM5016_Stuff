@@ -295,18 +295,14 @@ class ClientTableRawData:
 
     def __init__(self):
         """Access the clients.csv file and sanitizes the input."""
-        self.conn = sqlite3.connect("./Raw_Data/client.csv")
-        self.cursor = self.conn.cursor()
-        raw_data = self.cursor.execute(
-            """select clid, fname, lname, age, memberyear; """).fetchall()
-        raw_data: List[ClientTableData] = list(
-            map(lambda x: ClientTableData(x[0], x[1], x[2], x[3], x[4], x[5]),
-                raw_data))
+        df = pd.read_csv('./Raw_Data/client.csv')
+        df = df.dropna()
+        raw_data = list()
+        for index, row in df.iterrows():
+            raw_data.append(
+                ClientTableData(row['clid'], row[' fname'], row[' lastname'],
+                                row[' age'], row[' memberyear']))
         self.cleanData = self.sanitizeData(raw_data)
-
-    def __del__(self):
-        """Disconnects from clients.csv file."""
-        self.conn.close
 
     def sanitizeData(self,
                      raw_data: List[ClientTableData]) -> List[ClientTableData]:
@@ -333,9 +329,7 @@ class ClientTableRawData:
                 VALUES(%s, %s, %s, %s, %s)""",
                 (record.clid, record.fname, record.lname, record.age,
                  record.memberyear))
-            conn.cursor.execute(
-                """ALTER TABLE client ADD PRIMARY KEY (clid);""")
-            conn.cursor.commit()
+            conn.conn.commit()
 
 
 class HotelTableData:
@@ -403,7 +397,7 @@ class HotelTableRawData:
                 VALUES(%s, %s, %s, %s)""",
                 (record.hid, record.chid, record.hname, record.hcity))
             conn.cursor.execute("""ALTER TABLE hotel ADD PRIMARY KEY (hid);""")
-            conn.cursor.commit()
+            conn.conn.commit()
 
 
 class RoomUnavailableTableData:
@@ -474,10 +468,10 @@ class RoomUnavailableTableRawData:
                 (record.ruid, record.rid, record.startdate, record.enddate))
             conn.cursor.execute(
                 """ALTER TABLE roomunavailable ADD PRIMARY KEY (hid);""")
-            conn.cursor.commit()
+            conn.conn.commit()
 
 
 if __name__ == "__main__":
     conn = DatabaseConnection("db", "uwu", "uwu", "127.0.0.1", "5432")
-    hotelTableData = HotelTableRawData()
-    hotelTableData.insertSanitizedRecords(conn)
+    clientData = ClientTableRawData()
+    clientData.insertSanitizedRecords(conn)
