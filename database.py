@@ -23,6 +23,8 @@ class DatabaseConnection:
             self.createReserveTable()
             self.createLoginTable()
             self.createChainsTable()
+            self.createEmployeeTable()
+            self.createRoomDescriptionTable()
 
     def createRoomTable(self):
         """Create Room table if it does not already exist."""
