@@ -206,7 +206,7 @@ class RoomDescriptionTableRawData:
                 self.roomDescription_data.append(
                     RoomDescriptionTableData(row['detailid'], row['name'],
                                              row['type'], row['capacity'],
-                                             row['handicap']))
+                                             bool(row['handicap'])))
         except Exception as e:
             print("Unable to read JSON", e)
             return None
