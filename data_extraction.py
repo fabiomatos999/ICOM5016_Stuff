@@ -7,6 +7,8 @@ in phase 1 of the project.
 import sqlite3
 from typing import List
 from database import DatabaseConnection
+from datetime import date
+
 
 import pandas as pd
 
@@ -259,3 +261,195 @@ class ChainsTableRawData:
 
     def getCleanData(self) -> List[ChainsTableData]:
         return self.chains_data
+
+
+class ClientTableData:
+    """Class is used to represent the records inside the clients table"""
+    
+    def __init__(self, clid: int, fname: str, lname: str, age: int, memberyear: int):
+        """Constructor for ClienTableData class
+        
+        Args:
+            clid (int): Serial primary key for Client table
+            fname (str): Varchar of the client's first name 
+            lname (str): Varchar of the client's last name 
+            age (int): Integer of the client's age
+            memberyear (int): Integer of Number of years client has been a member
+        """
+        self.clid = clid
+        self.fname = fname
+        self.lname = lname
+        self.age = age
+        self.memberyear = memberyear
+        
+    def __str__(self) -> str:
+        """Returns string representation of the ClientTableData Class"""
+        s = (f"{self.clid}-{self.fname}-{self.lname}-{self.age}-{self.memberyear}")
+        return s
+    
+    
+class ClientTableRawData:
+    """Class accesses the clients.csv file, sanitizes and inserts the entries."""
+    
+    def __init__(self):
+        """Accesses the clients.csv file and sanitizes the input."""
+        self.conn = sqlite3.connect("./Raw_Data/client.csv")
+        self.cursor = self.conn.cursor()
+        raw_data = self.cursor.execute("""select clid, fname, lname, age, memberyear; """).fetchall()
+        raw_data: List[ClientTableData] = list(
+            map(lambda x: ClientTableData(x[0], x[1], x[2], x[3], x[4], x[5]),
+                raw_data))
+        self.cleanData = self.sanitizeData(raw_data)
+    
+    def __del__(self):
+        """Disconnects from clients.csv file."""
+        self.conn.close
+        
+    def sanitizeData(self, raw_data: List[ClientTableData]) -> List[ClientTableData]:
+        """Removes invalid (dirty) data in preperation for insertion into the database."""
+        return list(
+            # Filters out null values
+            filter(lambda x: x.clid is not None and x.fname is not None and x.lname
+                is not None and x.age is not None and x.memberyear is not None, raw_data))
+
+    def getCleanData(self) -> List[ClientTableData]:
+        """Gets sanitized records from clients.csv file."""
+        return self.cleanData
+    
+    def insertSanitizedRecords(self, conn: DatabaseConnection):
+        """Inserts clean data into the Client table.
+        Alters Client table by adding primary key constraint to clid.
+        """
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO CLIENT (clid, fname, lname, age, memberyear)
+                VALUES(%s, %s, %s, %s, %s)""",
+                (record.clid, record.fname, record.lname, record.age, record.memberyear))
+            conn.cursor.execute("""ALTER TABLE client ADD PRIMARY KEY (clid);""")
+            conn.cursor.commit()
+            
+#==================================================================================================
+class HotelTableData:
+    """Class is used to represent the records inside the clients table"""
+
+    def __init__(self, hid: int, chid: int, hname: str, hcity: str):
+        """Constructor for ClienTableData class
+
+        Args:
+            hid (int): Serial Primary key for Hotel table
+            chid (int): Integer Foreign key from Chains Table
+            hname (str): String of the hotel's name
+            hcity (str): String of the city's name
+        """
+        self.hid = hid
+        self.chid = chid
+        self.hname = hname
+        self.hcity = hcity
+    
+    def __str__(self) -> str:
+        """Returns string representation of the HotelTableData Class"""
+        s = (f"{self.hid}-{self.chid}-{self.hname}-{self.hcity}")
+        return s
+    
+    
+class HotelTableRawData:
+    """Class accesses the hotel.csv file, sanitizes and inserts the entries."""
+    def __init__(self):
+        """Accesses the clients.csv file and sanitizes the input."""
+        self.conn = sqlite3.connect("./Raw_Data/hotel.csv")
+        self.cursor = self.conn.cursor()
+        raw_data = self.cursor.execute("""select hid, chid, hname, hcity; """).fetchall()
+        raw_data: List[HotelTableData] = list(
+            map(lambda x: HotelTableData(x[0], x[1], x[2], x[3], x[4]),
+                raw_data))
+        self.cleanData = self.sanitizeData(raw_data)
+    
+    def __del__(self):
+        """Disconnects from hotel.csv file."""
+        self.conn.close
+        
+    def sanitizeData(self, raw_data: List[HotelTableData]) -> List[HotelTableData]:
+        """Removes invalid (dirty) data in preperation for insertion into the database."""
+        return list(
+            # Filters out null values
+            filter(lambda x: x.hid is not None and x.chid is not None and x.hname
+                is not None and x.hcity is not None, raw_data))
+
+    def getCleanData(self) -> List[HotelTableData]:
+        """Gets sanitized records from hotel.csv file."""
+        return self.cleanData
+    
+    def insertSanitizedRecords(self, conn: DatabaseConnection):
+        """Inserts clean data into the Hotel table.
+        Alters Hotel table by adding primary key constraint to hid.
+        """
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO CLIENT (hid, chid, hname, hcity)
+                VALUES(%s, %s, %s, %s)""",
+                (record.hid, record.chid, record.hname, record.hcity))
+            conn.cursor.execute("""ALTER TABLE hotel ADD PRIMARY KEY (hid);""")
+            conn.cursor.commit()
+    
+#==================================================================================================
+class RoomUnavailableTableData:
+    """Class is used to represent the records inside the RoomUnavailable table"""
+    
+    def __init__(self, ruid: int, rid: int, startdate: date, enddate: date):
+        """Constructor for the RoomUnavailable class
+
+        Args:
+            ruid (int): Serial Primary key for RoomUnavailable table
+            rid (int): INteger Foreign key from Room table
+            startdate (date): DATE, represents start date of room reservation
+            enddate (date): DATE, represents end date of room reservation
+        """
+        self.ruid = ruid
+        self.rid = rid
+        self.startdate = startdate
+        self.enddate = enddate
+        
+    def __str__(self) -> str:
+        """Returns string representation of the RoomUnavailableTableData Class"""
+        s = (f"{self.ruid}-{self.rid}-{self.startdate}-{self.enddate}")
+        return s
+    
+    
+class RoomUnavailableTableRawData:
+    """Class accesses the room_unavailable.csv file, sanitizes and inserts the entries."""
+    def __init__(self):
+        """Accesses the room_unavailable.csv file and sanitizes the input."""
+        self.conn = sqlite3.connect("./Raw_Data/room_unavailable.csv")
+        self.cursor = self.conn.cursor()
+        raw_data = self.cursor.execute("""select ruid, rid, startdate, enddate; """).fetchall()
+        raw_data: List[RoomUnavailableTableData] = list(
+            map(lambda x: RoomUnavailableTableData(x[0], x[1], x[2], x[3], x[4]),
+                raw_data))
+        self.cleanData = self.sanitizeData(raw_data)
+    
+    def __del__(self):
+        """Disconnects from room_unavailable.csv file."""
+        self.conn.close
+        
+    def sanitizeData(self, raw_data: List[RoomUnavailableTableData]) -> List[RoomUnavailableTableData]:
+        """Removes invalid (dirty) data in preperation for insertion into the database."""
+        return list(
+            # Filters out null values
+            filter(lambda x: x.ruid is not None and x.rid is not None and x.startdate
+                is not None and x.enddate is not None, raw_data))
+
+    def getCleanData(self) -> List[RoomUnavailableTableData]:
+        """Gets sanitized records from room_unavailable.csv file."""
+        return self.cleanData
+    
+    def insertSanitizedRecords(self, conn: DatabaseConnection):
+        """Inserts clean data into the RoomUnavailable table.
+        Alters RoomUnavailable table by adding primary key constraint to ruid.
+        """
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO CLIENT (ruid, rid, startdate, enddate)
+                VALUES(%s, %s, %s, %s)""",
+                (record.ruid, record.rid, record.startdate, record.enddate))
+            conn.cursor.execute("""ALTER TABLE roomunavailable ADD PRIMARY KEY (hid);""")
+            conn.cursor.commit()
