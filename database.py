@@ -31,6 +31,16 @@ class DatabaseConnection:
                 rprice REAL NOT NULL);""")
         self.conn.commit()
 
+    def createRoomDescriptionTable(self):
+        """Create RoomDescription table if it does not already exist."""
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS RoomDescription (
+            rdid SERIAL PRIMARY KEY,
+            rname VARCHAR NOT NULL,
+            rtype VARCHAR NOT NULL,
+            capacity INTEGER NOT NULL,
+            ishandicap BOOLEAN NOT NULL);""")
+        self.conn.commit()
+
     def createReserveTable(self):
         """Create Reserve table if it does not already exist."""
         self.cursor.execute("""CREATE TABLE IF NOT EXISTS Reserve (reid SERIAL,
@@ -48,6 +58,17 @@ class DatabaseConnection:
             eid INTEGER NOT NULL,
             username VARCHAR NOT NULL,
             password VARCHAR NOT NULL);""")
+        self.conn.commit()
+
+    def createEmployeeTable(self):
+        """Create Employee table if it does not already exist."""
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS Employee (
+            eid SERIAL PRIMARY KEY,
+            hid INTEGER NOT NULL,
+            fname VARCHAR NOT NULL,
+            lname VARCHAR NOT NULL,
+            position VARCHAR NOT NULL,
+            salary FLOAT NOT NULL);""")
         self.conn.commit()
 
     def createChainsTable(self):

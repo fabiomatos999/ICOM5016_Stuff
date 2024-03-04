@@ -164,6 +164,61 @@ class RoomTableRawData:
         """Get sanitized records from rooms.db sqlite database."""
         return self.cleanData
 
+class RoomDescriptionTableData:
+    """Data class used to represent the records inside of the RoomDescription table."""
+
+    def __init__(self, rdid: int, rname: str, rtype: str, capacity: int, ishandicap: bool):
+        """Construct RoomDescriptionData.
+
+        :param rdid Auto incremented Primary Key for RoomDescription table.
+        :param rname Name of the room.
+        :param rtype Type of room.
+        :param capacity Size of the room.
+        :param ishandicap Checks if room is handicap.
+
+        Should only be used by the RoomDescriptionTableRawData class and not
+        instantiated manually.
+        """
+        self.rdid = rdid
+        self.rname = rname
+        self.rtype = rtype
+        self.capacity = capacity
+        self.ishandicap = ishandicap
+
+    def __str__(self):
+        """Return string representation of RoomDescriptionTableData."""
+        return f"{self.rdid}-{self.rname}-{self.rtype}-{self.capacity}-{self.ishandicap}"
+
+
+class RoomDescriptionTableRawData:
+    """"Class to open dataframe for Room Details JSON and sanitize records."""
+
+    def __init__(self):
+        """Read JSON File and sanitize input."""
+        self.roomDescription_data = list()
+        try:
+            df = pd.read_json("Raw_Data/roomdetails.json")
+            df = df.dropna()
+            df['detailid'] = df['detailid'].astype(int)
+            for index, row in df.iterrows():
+                self.roomDescription_data.append(
+                    RoomDescriptionData(row['detailid'], row['name'], row['type'],
+                                   row['capacity'], row['handicap']))
+        except Exception as e:
+            print("Unable to read JSON", e)
+            return None
+
+    def insertSanitizedData(self, conn: DatabaseConnection):
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO RoomDescription
+                (rdid, rname, rtype, capacity, ishandicap)
+                VALUES (%s,%s,%s,%s,%s)""",
+                (record.rdid, record.rname, record.rtype, record.capacity, record.ishandicap))
+        conn.conn.commit()
+
+    def getCleanData(self) -> List[RoomDescriptionData]:
+        return self.roomDescription_data
 
 class LoginTableData:
     """Data class used to represent the records inside of the login table."""
@@ -226,6 +281,66 @@ class ChainsTableData:
         """Return string representation of ChainTableData."""
         return (f"{self.chid}-{self.cname}-{self.springmkup}-{self.summermkup}"
                 f"-{self.fallmkup}-{self.wintermkup}")
+
+class EmployeeTableData:
+    """Data class used to represent the records inside of the Employee table."""
+
+    def __init__(self, eid: int, hid: int, fname: str, lname: str, position: str, salary: float):
+        """Construct EmployeeData.
+
+        :param eid Auto incremented Primary Key for Employee table.
+        :param hid Foreign Key of the Hotel table.
+        :param fname First name of the employee.
+        :param lname Last name of the employee.
+        :param position The work position of the employee.
+        :param salary The money that the employee makes.
+
+        Should only be used by the EmployeeTableRawData class and not
+        instantiated manually.
+        """
+        self.eid = edid
+        self.hid = hid
+        self.fname = fname
+        self.lname = lname
+        self.position = position
+        self.salary = salary
+
+    def __str__(self):
+        """Return string representation of EmployeeTableData."""
+        return f"{self.eid}-{self.hid}-{self.fname}-{self.lname}-{self.position}-{self.salary}"
+
+
+class EmployeeTableRawData:
+    """"Class to open dataframe for Employee JSON and sanitize records."""
+
+    def __init__(self):
+        """Read JSON File and sanitize input."""
+        self.employee_data = list()
+        try:
+            df = pd.read_json("Raw_Data/employee.json")
+            df = df.dropna()
+            df['employee_id'] = df['employee_id'].astype(int)
+            for index, row in df.iterrows():
+                self.employee_data.append(
+                    EmployeeData(row['employee_id'], row['hotel_id'], row['firstname'],
+                                   row['lastname'], row['pos'], row['salary']))
+        except Exception as e:
+            print("Unable to read JSON", e)
+            return None
+
+    def insertSanitizedData(self, conn: DatabaseConnection):
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO Employee
+                (eid, hid, fname, lname, position, salary)
+                VALUES (%s,%s,%s,%s,%s,%s)""",
+                (record.eid, record.hid, record.fname, 
+                record.lname, record.position, record.salary))
+        conn.conn.commit()
+
+    def getCleanData(self) -> List[EmployeeData]:
+        return self.employee_data
+
 
 
 class ChainsTableRawData:
