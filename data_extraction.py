@@ -230,6 +230,16 @@ class LoginTableData:
     """Data class used to represent the records inside of the login table."""
 
     def __init__(self, lid: int, eid: int, username: str, password: str):
+        """Construct LoginTableData.
+
+        :param lid Auto incremented Primary Key for Login table.
+        :param eid Foreign key for Employee table.
+        :param username String representing the username.
+        :param password String representing the password.
+
+        Should only be used by the LoginTableRawData class and not
+        instantiated manually.
+        """
         self.lid = lid
         self.eid = eid
         self.username = username
@@ -276,6 +286,18 @@ class ChainsTableData:
 
     def __init__(self, chid: int, cname: str, springmkup: float,
                  summermkup: float, fallmkup: float, wintermkup: float):
+        """Construct ChainsTableData.
+
+        :param chid Auto incremented Primary Key for Chains table.
+        :param cname String representation of chain name.
+        :param springmkup float representation of spring markup.
+        :param summermkup float representation of summer markup.
+        :param fallmkup float representation of fall markup.
+        :param wintermkup float representation of winter markup.
+
+        Should only be used by the ChainsTableRawData class and not
+        instantiated manually.
+        """
         self.chid = chid
         self.cname = cname
         self.springmkup = springmkup
