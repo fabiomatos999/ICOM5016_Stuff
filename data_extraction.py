@@ -79,7 +79,7 @@ class ReserveTableRawData:
         """Get sanitized records from records.db sqlite database."""
         return self.cleanData
 
-    def insertSanitizedRecords(self, conn: DatabaseConnection):
+    def insertSanitizedData(self, conn: DatabaseConnection):
         """Insert clean data into the Reserve table.
 
         Alters Reserve table by adding primary key constraint to reid.
@@ -343,7 +343,7 @@ class EmployeeTableRawData:
                 """INSERT INTO Employee
                 (eid, hid, fname, lname, position, salary)
                 VALUES (%s,%s,%s,%s,%s,%s)""",
-                (record.eid, record.hid, record.fname, record.lname,
+                (record.eid, abs(record.hid), record.fname, record.lname,
                  record.position, record.salary))
         conn.conn.commit()
 
@@ -370,7 +370,7 @@ class ChainsTableRawData:
             print("An error occurred:", e)
             return None
 
-    def insert_sanitized_chains_data(self, conn: DatabaseConnection):
+    def insertSanitizedData(self, conn: DatabaseConnection):
         for record in self.getCleanData():
             conn.cursor.execute(
                 """INSERT INTO Chains
@@ -382,6 +382,7 @@ class ChainsTableRawData:
 
     def getCleanData(self) -> List[ChainsTableData]:
         return self.chains_data
+
 
 class ClientTableData:
     """Class is used to represent the records inside the clients table."""
@@ -409,6 +410,7 @@ class ClientTableData:
         s = (f"{self.clid}-{self.fname}-{self.lname}"
              f"-{self.age}-{self.memberyear}")
         return s
+
 
 class ClientTableRawData:
     """Accesses the clients.csv file, sanitizes and inserts the entries."""
@@ -438,7 +440,7 @@ class ClientTableRawData:
         """Get sanitized records from clients.csv file."""
         return self.cleanData
 
-    def insertSanitizedRecords(self, conn: DatabaseConnection):
+    def insertSanitizedData(self, conn: DatabaseConnection):
         """Insert clean data into the Client table."""
         for record in self.getCleanData():
             conn.cursor.execute(
@@ -483,7 +485,7 @@ class HotelTableRawData:
         for index, row in df.iterrows():
             raw_data.append(
                 HotelTableData(row['hid'], row['chain'], row['name'],
-                                row['city']))
+                               row['city']))
         self.cleanData = self.sanitizeData(raw_data)
 
     def sanitizeData(self,
@@ -492,14 +494,15 @@ class HotelTableRawData:
         return list(
             # Filters out null values
             filter(
-                lambda x: x.hid is not None and x.chid is not None and x.hname
-                is not None and x.hcity is not None, raw_data))
+                lambda x: x.hid is not None and x.hid > 0 and x.chid is
+                not None and x.chid > 0 and x.hname is not None and x.hcity is
+                not None, raw_data))
 
     def getCleanData(self) -> List[HotelTableData]:
         """Get sanitized records from hotel.csv file."""
         return self.cleanData
 
-    def insertSanitizedRecords(self, conn: DatabaseConnection):
+    def insertSanitizedData(self, conn: DatabaseConnection):
         """Insert clean data into the Hotel table."""
         for record in self.getCleanData():
             conn.cursor.execute(
@@ -542,26 +545,27 @@ class RoomUnavailableTableRawData:
         raw_data = list()
         for index, row in df.iterrows():
             raw_data.append(
-                RoomUnavailableTableData(row['ruid'], row['rid'], row['start_date'],
-                                row['end_date']))
+                RoomUnavailableTableData(row['ruid'], row['rid'],
+                                         row['start_date'], row['end_date']))
         self.cleanData = self.sanitizeData(raw_data)
 
     def sanitizeData(
-        self, raw_data: List[RoomUnavailableTableData]) -> List[RoomUnavailableTableData]:
+        self, raw_data: List[RoomUnavailableTableData]
+    ) -> List[RoomUnavailableTableData]:
         """Remove invalid (dirty) data for insertion into the database."""
         return list(
             # Filters out null values
             filter(
                 lambda x: x.ruid is not None and x.rid is not None and x.
                 startdate is not None and x.enddate is not None, raw_data))
-                                
+
     def getCleanData(self) -> List[RoomUnavailableTableData]:
         """Get sanitized records from room_unavailable.csv file."""
         return self.cleanData
 
-    def insertSanitizedRecords(self, conn: DatabaseConnection):
+    def insertSanitizedData(self, conn: DatabaseConnection):
         """Insert clean data into the RoomUnavailable table."""
-        
+
         for record in self.getCleanData():
             conn.cursor.execute(
                 """INSERT INTO ROOMUNAVAILABLE (ruid, rid, startdate, enddate)
@@ -570,3 +574,24 @@ class RoomUnavailableTableRawData:
             conn.conn.commit()
 
 
+if __name__ == "__main__":
+    conn = DatabaseConnection("db", "uwu", "uwu", "127.0.0.1", "5432")
+    loginData = LoginTableRawData()
+    loginData.insertSanitizedData(conn)
+    employeeData = EmployeeTableRawData()
+    employeeData.insertSanitizedData(conn)
+    hotelData = HotelTableRawData()
+    hotelData.insertSanitizedData(conn)
+    chainsData = ChainsTableRawData()
+    chainsData.insertSanitizedData(conn)
+    roomDescriptionData = RoomDescriptionTableRawData()
+    roomDescriptionData.insertSanitizedData(conn)
+    clientData = ClientTableRawData()
+    clientData.insertSanitizedData(conn)
+    roomData = RoomTableRawData()
+    roomData.insertSanitizedRecords(conn)
+    reserveData = ReserveTableRawData()
+    reserveData.insertSanitizedData(conn)
+    roomUnavailableData = RoomUnavailableTableRawData()
+    roomUnavailableData.insertSanitizedData(conn)
+    conn.addForeignKeyConstraints()
