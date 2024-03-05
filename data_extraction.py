@@ -83,6 +83,7 @@ class ReserveTableRawData:
         """Insert clean data into the Reserve table.
 
         Alters Reserve table by adding primary key constraint to reid.
+        Reset sequence to max after all data has been inserted.
         """
         for record in self.getCleanData():
             conn.cursor.execute(
@@ -92,6 +93,12 @@ class ReserveTableRawData:
                 (record.reid, record.ruid, record.clid, record.total_cost,
                  record.payment, record.guests))
         conn.cursor.execute("""ALTER TABLE reserve ADD PRIMARY KEY (reid);""")
+        conn.conn.commit()
+        conn.cursor.execute("select max(reid) from reserve;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE reserve_reid_seq
+        restart with %s;""", (max, ))
         conn.conn.commit()
 
 
@@ -151,6 +158,7 @@ class RoomTableRawData:
         """Insert clean data into the Room table.
 
         Alters Reserve table by adding primary key constraint to rid.
+        Reset sequence to max after all data has been inserted.
         """
         for record in self.getCleanData():
             conn.cursor.execute(
@@ -160,6 +168,11 @@ class RoomTableRawData:
                 (record.rid, record.hid, record.rdid, record.rprice))
         conn.cursor.execute("""ALTER TABLE Room ADD PRIMARY KEY (rid);""")
         conn.conn.commit()
+        conn.cursor.execute("select max(rid) from room;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE room_rid_seq
+        restart with %s;""", (max, ))
 
     def getCleanData(self) -> List[ReserveTableData]:
         """Get sanitized records from rooms.db sqlite database."""
@@ -515,9 +528,8 @@ class HotelTableRawData:
         return list(
             # Filters out null values
             filter(
-                lambda x: x.hid is not None and x.chid is
-                not None and x.hname is not None and x.hcity is
-                not None, raw_data))
+                lambda x: x.hid is not None and x.chid is not None and x.hname
+                is not None and x.hcity is not None, raw_data))
 
     def getCleanData(self) -> List[HotelTableData]:
         """Get sanitized records from hotel.csv file."""
