@@ -7,6 +7,7 @@ in phase 1 of the project.
 import sqlite3
 from typing import List
 from database import DatabaseConnection
+from datetime import date
 
 import pandas as pd
 
@@ -381,4 +382,191 @@ class ChainsTableRawData:
 
     def getCleanData(self) -> List[ChainsTableData]:
         return self.chains_data
+
+class ClientTableData:
+    """Class is used to represent the records inside the clients table."""
+
+    def __init__(self, clid: int, fname: str, lname: str, age: int,
+                 memberyear: int):
+        """Create ClienTableData class.
+
+        Args:
+            clid (int): Serial primary key for Client table
+            fname (str): Varchar of the client's first name
+            lname (str): Varchar of the client's last name
+            age (int): Integer of the client's age
+            memberyear (int): Integer of Number of years client
+            has been a member
+        """
+        self.clid = clid
+        self.fname = fname
+        self.lname = lname
+        self.age = age
+        self.memberyear = memberyear
+
+    def __str__(self) -> str:
+        """Return string representation of the ClientTableData Class."""
+        s = (f"{self.clid}-{self.fname}-{self.lname}"
+             f"-{self.age}-{self.memberyear}")
+        return s
+
+class ClientTableRawData:
+    """Accesses the clients.csv file, sanitizes and inserts the entries."""
+
+    def __init__(self):
+        """Access the clients.csv file and sanitizes the input."""
+        df = pd.read_csv('./Raw_Data/client.csv')
+        df = df.dropna()
+        raw_data = list()
+        for index, row in df.iterrows():
+            raw_data.append(
+                ClientTableData(row['clid'], row[' fname'], row[' lastname'],
+                                row[' age'], row[' memberyear']))
+        self.cleanData = self.sanitizeData(raw_data)
+
+    def sanitizeData(self,
+                     raw_data: List[ClientTableData]) -> List[ClientTableData]:
+        """Remove invalid (dirty) data for insertion into the database."""
+        return list(
+            # Filters out null values
+            filter(
+                lambda x: x.clid is not None and x.fname is not None and x.
+                lname is not None and x.age is not None and x.memberyear is
+                not None, raw_data))
+
+    def getCleanData(self) -> List[ClientTableData]:
+        """Get sanitized records from clients.csv file."""
+        return self.cleanData
+
+    def insertSanitizedRecords(self, conn: DatabaseConnection):
+        """Insert clean data into the Client table."""
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO CLIENT (clid, fname, lname, age, memberyear)
+                VALUES(%s, %s, %s, %s, %s)""",
+                (record.clid, record.fname, record.lname, record.age,
+                 record.memberyear))
+            conn.conn.commit()
+
+
+class HotelTableData:
+    """Class is used to represent the records inside the Hotel table."""
+
+    def __init__(self, hid: int, chid: int, hname: str, hcity: str):
+        """Create for JotelTableData class.
+
+        Args:
+            hid (int): Serial Primary key for Hotel table
+            chid (int): Integer Foreign key from Chains Table
+            hname (str): String of the hotel's name
+            hcity (str): String of the city's name
+        """
+        self.hid = hid
+        self.chid = chid
+        self.hname = hname
+        self.hcity = hcity
+
+    def __str__(self) -> str:
+        """Return string representation of the HotelTableData Class."""
+        s = (f"{self.hid}-{self.chid}-{self.hname}-{self.hcity}")
+        return s
+
+
+class HotelTableRawData:
+    """Class accesses the hotel.csv file, sanitizes and inserts the entries."""
+
+    def __init__(self):
+        """Access the clients.csv file and sanitizes the input."""
+        df = pd.read_csv('./Raw_Data/hotel.csv')
+        df = df.dropna()
+        raw_data = list()
+        for index, row in df.iterrows():
+            raw_data.append(
+                HotelTableData(row['hid'], row['chain'], row['name'],
+                                row['city']))
+        self.cleanData = self.sanitizeData(raw_data)
+
+    def sanitizeData(self,
+                     raw_data: List[HotelTableData]) -> List[HotelTableData]:
+        """Remove invalid (dirty) data for insertion into the database."""
+        return list(
+            # Filters out null values
+            filter(
+                lambda x: x.hid is not None and x.chid is not None and x.hname
+                is not None and x.hcity is not None, raw_data))
+
+    def getCleanData(self) -> List[HotelTableData]:
+        """Get sanitized records from hotel.csv file."""
+        return self.cleanData
+
+    def insertSanitizedRecords(self, conn: DatabaseConnection):
+        """Insert clean data into the Hotel table."""
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO HOTEL (hid, chid, hname, hcity)
+                VALUES(%s, %s, %s, %s)""",
+                (record.hid, record.chid, record.hname, record.hcity))
+            conn.conn.commit()
+
+
+class RoomUnavailableTableData:
+    """Class to represent the records inside the RoomUnavailable table."""
+
+    def __init__(self, ruid: int, rid: int, startdate: date, enddate: date):
+        """Create for the RoomUnavailable class.
+
+        Args:
+            ruid (int): Serial Primary key for RoomUnavailable table
+            rid (int): INteger Foreign key from Room table
+            startdate (date): DATE, represents start date of room reservation
+            enddate (date): DATE, represents end date of room reservation
+        """
+        self.ruid = ruid
+        self.rid = rid
+        self.startdate = startdate
+        self.enddate = enddate
+
+    def __str__(self) -> str:
+        """Return string representation of RoomUnavailableTableData Class."""
+        s = (f"{self.ruid}-{self.rid}-{self.startdate}-{self.enddate}")
+        return s
+
+
+class RoomUnavailableTableRawData:
+    """Accesses room_unavailable.csv file, sanitize and inserts the entries."""
+
+    def __init__(self):
+        """Access the room_unavaible.csv file and sanitizes the input."""
+        df = pd.read_csv('./Raw_Data/room_unavailable.csv')
+        df = df.dropna()
+        raw_data = list()
+        for index, row in df.iterrows():
+            raw_data.append(
+                RoomUnavailableTableData(row['ruid'], row['rid'], row['start_date'],
+                                row['end_date']))
+        self.cleanData = self.sanitizeData(raw_data)
+
+    def sanitizeData(
+        self, raw_data: List[RoomUnavailableTableData]) -> List[RoomUnavailableTableData]:
+        """Remove invalid (dirty) data for insertion into the database."""
+        return list(
+            # Filters out null values
+            filter(
+                lambda x: x.ruid is not None and x.rid is not None and x.
+                startdate is not None and x.enddate is not None, raw_data))
+                                
+    def getCleanData(self) -> List[RoomUnavailableTableData]:
+        """Get sanitized records from room_unavailable.csv file."""
+        return self.cleanData
+
+    def insertSanitizedRecords(self, conn: DatabaseConnection):
+        """Insert clean data into the RoomUnavailable table."""
+        
+        for record in self.getCleanData():
+            conn.cursor.execute(
+                """INSERT INTO ROOMUNAVAILABLE (ruid, rid, startdate, enddate)
+                VALUES(%s, %s, %s, %s)""",
+                (record.ruid, record.rid, record.startdate, record.enddate))
+            conn.conn.commit()
+
 

@@ -23,6 +23,9 @@ class DatabaseConnection:
             self.createReserveTable()
             self.createLoginTable()
             self.createChainsTable()
+            self.createClientTable()
+            self.createHotelTable()
+            self.createRoomUnavailableTable()
             self.createEmployeeTable()
             self.createRoomDescriptionTable()
 
@@ -87,3 +90,27 @@ class DatabaseConnection:
     def __del__(self):
         """Close database connection when object is destroyed."""
         self.conn.close()
+
+    def createClientTable(self):
+        """Create Client table if it does not already exist."""
+        self.cursor.execute(
+            """CREATE TABLE IF NOT EXISTS Client (clid SERIAL PRIMARY KEY,
+       fname VARCHAR NOT NULL,lname VARCHAR NOT NULL,
+       age INTEGER NOT NULL,memberyear INTEGER NOT NULL);""")
+        self.conn.commit()
+
+    def createHotelTable(self):
+        """Create Hotel table if it does not already exist."""
+        self.cursor.execute(
+            """CREATE TABLE IF NOT EXISTS Hotel (hid SERIAL PRIMARY KEY,
+            chid INTEGER NOT NULL,
+            hname VARCHAR NOT NULL,hcity VARCHAR NOT NULL);""")
+        self.conn.commit()
+
+    def createRoomUnavailableTable(self):
+        """Create RoomUnavailable table if it does not already exist."""
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS RoomUnavailable
+            (ruid SERIAL PRIMARY KEY,
+            rid INTEGER NOT NULL,startdate
+            DATE NOT NULL,enddate DATE NOT NULL);""")
+        self.conn.commit()
