@@ -343,7 +343,7 @@ class EmployeeTableRawData:
                 """INSERT INTO Employee
                 (eid, hid, fname, lname, position, salary)
                 VALUES (%s,%s,%s,%s,%s,%s)""",
-                (record.eid, abs(record.hid), record.fname, record.lname,
+                (record.eid, record.hid, record.fname, record.lname,
                  record.position, record.salary))
         conn.conn.commit()
 
@@ -360,7 +360,6 @@ class ChainsTableRawData:
         try:
             df = pd.read_excel("Raw_Data/chain.xlsx")
             df = df.dropna()
-            df = df[df['id'] >= 1]
             df['id'] = df['id'].astype(int)
             for index, row in df.iterrows():
                 self.chains_data.append(
@@ -494,8 +493,8 @@ class HotelTableRawData:
         return list(
             # Filters out null values
             filter(
-                lambda x: x.hid is not None and x.hid > 0 and x.chid is
-                not None and x.chid > 0 and x.hname is not None and x.hcity is
+                lambda x: x.hid is not None and x.chid is
+                not None and x.hname is not None and x.hcity is
                 not None, raw_data))
 
     def getCleanData(self) -> List[HotelTableData]:
