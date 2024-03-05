@@ -114,3 +114,27 @@ class DatabaseConnection:
             rid INTEGER NOT NULL,startdate
             DATE NOT NULL,enddate DATE NOT NULL);""")
         self.conn.commit()
+
+    def addForeignKeyConstraints(self):
+        """Add foreign key constraints to all tables."""
+        self.cursor.execute(
+            """alter table LOGIN add foreign key
+            (EID) references EMPLOYEE (EID);"""
+        )
+        self.cursor.execute("""ALTER TABLE EMPLOYEE ADD
+        FOREIGN KEY (HID) REFERENCES HOTEL (HID);""")
+        self.cursor.execute("""ALTER TABLE HOTEL ADD FOREIGN KEY (CHID)
+        REFERENCES CHAINS (CHID);""")
+        self.cursor.execute("""ALTER TABLE RESERVE ADD FOREIGN KEY (RUID)
+        REFERENCES ROOMUNAVAILABLE (RUID);""")
+        self.cursor.execute("""ALTER TABLE RESERVE ADD FOREIGN KEY (CLID)
+        REFERENCES CLIENT (CLID);""")
+        self.cursor.execute("""ALTER TABLE ROOMUNAVAILABLE ADD
+        FOREIGN KEY (RID) REFERENCES ROOM (RID);""")
+        self.cursor.execute("""ALTER TABLE ROOM ADD
+        FOREIGN KEY (HID) REFERENCES HOTEL (HID);""")
+        self.cursor.execute("""ALTER TABLE ROOM ADD
+        FOREIGN KEY (RDID) REFERENCES ROOMDESCRIPTION (RDID);""")
+        self.cursor.execute("""ALTER TABLE LOGIN ADD
+        FOREIGN KEY (EID) REFERENCES EMPLOYEE (EID);""")
+        self.conn.commit()
