@@ -382,7 +382,3 @@ class ChainsTableRawData:
     def getCleanData(self) -> List[ChainsTableData]:
         return self.chains_data
 
-
-conn = DatabaseConnection("db", "uwu", "uwu", "127.0.0.1", "5432")
-r = RoomDescriptionTableRawData()
-r.insertSanitizedData(conn)
