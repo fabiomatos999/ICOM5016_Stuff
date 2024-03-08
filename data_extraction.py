@@ -282,12 +282,21 @@ class LoginTableRawData:
             return None
 
     def insertSanitizedData(self, conn: DatabaseConnection):
+        """Insert clean data into the Login table.
+        Reset sequence to max after all data has been inserted."""
         for record in self.getCleanData():
             conn.cursor.execute(
                 """INSERT INTO Login
                 (lid, eid, username, password)
                 VALUES (%s,%s,%s,%s)""",
                 (record.lid, record.eid, record.username, record.password))
+        conn.conn.commit()
+
+        conn.cursor.execute("select max(lid) from login;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE login_lid_seq
+        restart with %s;""", (max, ))
         conn.conn.commit()
 
     def getCleanData(self) -> List[LoginTableData]:
@@ -405,6 +414,8 @@ class ChainsTableRawData:
             return None
 
     def insertSanitizedData(self, conn: DatabaseConnection):
+        """Insert clean data into the Chains table.
+        Reset sequence to max after all data has been inserted."""
         for record in self.getCleanData():
             conn.cursor.execute(
                 """INSERT INTO Chains
@@ -412,6 +423,13 @@ class ChainsTableRawData:
                 VALUES (%s, %s, %s, %s, %s, %s)""",
                 (record.chid, record.cname, record.springmkup,
                  record.summermkup, record.fallmkup, record.wintermkup))
+        conn.conn.commit()
+
+        conn.cursor.execute("select max(chid) from chains;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE chains_chid_seq
+        restart with %s;""", (max, ))
         conn.conn.commit()
 
     def getCleanData(self) -> List[ChainsTableData]:
