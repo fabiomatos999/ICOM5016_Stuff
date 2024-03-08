@@ -226,6 +226,8 @@ class RoomDescriptionTableRawData:
             return None
 
     def insertSanitizedData(self, conn: DatabaseConnection):
+        """Insert clean data into the RoomDescription table.
+        Reset sequence to max after all data has been inserted."""
         for record in self.getCleanData():
             conn.cursor.execute(
                 """INSERT INTO RoomDescription
@@ -233,6 +235,13 @@ class RoomDescriptionTableRawData:
                 VALUES (%s,%s,%s,%s,%s)""",
                 (record.rdid, record.rname, record.rtype, record.capacity,
                  record.ishandicap))
+        conn.conn.commit()
+
+        conn.cursor.execute("select max(rdid) from roomdescription;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE roomdescription_rdid_seq
+        restart with %s;""", (max, ))
         conn.conn.commit()
 
     def getCleanData(self) -> List[RoomDescriptionTableData]:
@@ -382,6 +391,8 @@ class EmployeeTableRawData:
             return None
 
     def insertSanitizedData(self, conn: DatabaseConnection):
+        """Insert clean data into the Employee table.
+        Reset sequence to max after all data has been inserted."""
         for record in self.getCleanData():
             conn.cursor.execute(
                 """INSERT INTO Employee
@@ -389,6 +400,13 @@ class EmployeeTableRawData:
                 VALUES (%s,%s,%s,%s,%s,%s)""",
                 (record.eid, record.hid, record.fname, record.lname,
                  record.position, record.salary))
+        conn.conn.commit()
+
+        conn.cursor.execute("select max(eid) from employee;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE employee_eid_seq
+        restart with %s;""", (max, ))
         conn.conn.commit()
 
     def getCleanData(self) -> List[EmployeeTableData]:
