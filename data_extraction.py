@@ -511,7 +511,8 @@ class ClientTableRawData:
         return self.cleanData
 
     def insertSanitizedData(self, conn: DatabaseConnection):
-        """Insert clean data into the Client table."""
+        """Insert clean data into the Client table.
+           Reset sequence to max after all data has been inserted."""
         for record in self.getCleanData():
             conn.cursor.execute(
                 """INSERT INTO CLIENT (clid, fname, lname, age, memberyear)
@@ -519,6 +520,13 @@ class ClientTableRawData:
                 (record.clid, record.fname, record.lname, record.age,
                  record.memberyear))
             conn.conn.commit()
+            
+        conn.cursor.execute("select max(clid) from client;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE client_clid_seq
+        restart with %s;""", (max, ))
+        conn.conn.commit()
 
 
 class HotelTableData:
@@ -572,13 +580,21 @@ class HotelTableRawData:
         return self.cleanData
 
     def insertSanitizedData(self, conn: DatabaseConnection):
-        """Insert clean data into the Hotel table."""
+        """Insert clean data into the Hotel table.
+           Reset sequence to max after all data has been inserted."""
         for record in self.getCleanData():
             conn.cursor.execute(
                 """INSERT INTO HOTEL (hid, chid, hname, hcity)
                 VALUES(%s, %s, %s, %s)""",
                 (record.hid, record.chid, record.hname, record.hcity))
             conn.conn.commit()
+            
+        conn.cursor.execute("select max(hid) from hotel;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE hotel_hid_seq
+        restart with %s;""", (max, ))
+        conn.conn.commit()
 
 
 class RoomUnavailableTableData:
@@ -629,7 +645,8 @@ class RoomUnavailableTableRawData:
                 startdate is not None and x.enddate is not None, raw_data))
 
     def getCleanData(self) -> List[RoomUnavailableTableData]:
-        """Get sanitized records from room_unavailable.csv file."""
+        """Get sanitized records from room_unavailable.csv file.
+           Reset sequence to max after all data has been inserted."""
         return self.cleanData
 
     def insertSanitizedData(self, conn: DatabaseConnection):
@@ -641,6 +658,13 @@ class RoomUnavailableTableRawData:
                 VALUES(%s, %s, %s, %s)""",
                 (record.ruid, record.rid, record.startdate, record.enddate))
             conn.conn.commit()
+            
+        conn.cursor.execute("select max(ruid) from roomunavailable;")
+        max = int(conn.cursor.fetchone()[0]) + 1
+        conn.cursor.execute(
+            """ALTER SEQUENCE roomunavailable_ruid_seq
+        restart with %s;""", (max, ))
+        conn.conn.commit()
 
 
 if __name__ == "__main__":
